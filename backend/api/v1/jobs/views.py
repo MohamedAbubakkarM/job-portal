@@ -320,7 +320,9 @@ class JobViewSet(viewsets.ReadOnlyModelViewSet):
             AppliedJobs.objects.filter(user=request.user)
             .select_related("job_post", "job_post__company")
             .prefetch_related("job_post__location", "job_post__skills")
-            .order_by("-applied_on")
+            # -id breaks ties: two applications can share a timestamp on a
+            # coarse clock (Windows), and the order must still be newest-first.
+            .order_by("-applied_on", "-id")
         )
 
         status_filter = request.GET.get("status")
