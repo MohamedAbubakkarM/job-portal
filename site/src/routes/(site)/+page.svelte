@@ -198,7 +198,7 @@
             class="block text-3xl md:text-4xl lg:text-5xl font-semibold text-primary-600 tracking-tight leading-tight hero-fade-in"
             style="--delay: 150ms;"
           >
-            career opportunity
+            career opportunity (CD Check - Proof)
           </span>
         </h1>
 
