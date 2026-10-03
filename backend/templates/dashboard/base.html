@@ -1,0 +1,506 @@
+{% load compress %}
+{% load static %}
+{% load page_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeelJobs Admin</title>
+    <link rel="icon" type="image/x-icon" href="{{logo}}"/>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E9F2FF',
+                            100: '#CCE0FF',
+                            200: '#85B8FF',
+                            300: '#579DFF',
+                            400: '#388BFF',
+                            500: '#0052CC',
+                            600: '#0747A6',
+                            700: '#003884',
+                        },
+                        neutral: {
+                            50: '#FAFBFC',
+                            100: '#F4F5F7',
+                            200: '#EBECF0',
+                            300: '#DFE1E6',
+                            400: '#C1C7D0',
+                            500: '#7A869A',
+                            600: '#5E6C84',
+                            700: '#42526E',
+                            800: '#253858',
+                            900: '#172B4D',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+
+    <!-- Plugin CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+
+    <script src="https://cdn.ckeditor.com/4.5.11/standard/ckeditor.js"></script>
+
+    <style type="text/tailwindcss">
+        @layer components {
+            /* Sidebar Navigation */
+            .nav-item {
+                @apply flex items-center gap-3 px-4 py-2.5 text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors cursor-pointer;
+            }
+            .nav-item.active {
+                @apply bg-primary-50 text-primary-600 border-l-4 border-primary-500;
+            }
+            .nav-item i {
+                @apply w-5 text-center text-neutral-500;
+            }
+            .nav-item.active i {
+                @apply text-primary-500;
+            }
+            .sub-nav {
+                @apply ml-8 mt-1 space-y-1;
+            }
+            .sub-nav a {
+                @apply block px-3 py-1.5 text-sm text-neutral-600 hover:text-primary-600 hover:bg-neutral-50 rounded;
+            }
+
+            /* Buttons */
+            .btn {
+                @apply px-4 py-2 rounded-md font-medium transition-colors cursor-pointer;
+            }
+            .btn-primary {
+                @apply bg-primary-500 text-white hover:bg-primary-600;
+            }
+            .btn-secondary {
+                @apply bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-300;
+            }
+
+            /* Tables */
+            .table {
+                @apply w-full text-sm text-left border-collapse;
+            }
+            .table thead {
+                @apply bg-neutral-50 border-b border-neutral-200;
+            }
+            .table th {
+                @apply px-4 py-3 font-semibold text-neutral-700 text-xs uppercase tracking-wider;
+            }
+            .table td {
+                @apply px-4 py-3 border-b border-neutral-100;
+            }
+            .table tbody tr:hover {
+                @apply bg-neutral-50;
+            }
+            .table-bordered {
+                @apply border border-neutral-200 rounded-lg overflow-hidden;
+            }
+
+            /* Forms */
+            .form-control, .form-select {
+                @apply w-full px-3 py-2 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+            }
+            .submit {
+                @apply bg-primary-500 text-white font-medium hover:bg-primary-600 cursor-pointer;
+            }
+
+            /* Cards */
+            .stats {
+                @apply bg-white rounded-lg shadow-sm border border-neutral-200 p-6;
+            }
+
+            /* Tabs */
+            .nav-tabs {
+                @apply flex gap-1 border-b border-neutral-200 mb-4;
+            }
+            .nav-tabs .nav-link {
+                @apply px-4 py-2 text-sm font-medium text-neutral-600 border-b-2 border-transparent hover:text-neutral-900 hover:border-neutral-300 transition-colors;
+            }
+            .nav-tabs .nav-link.active {
+                @apply text-primary-600 border-primary-500;
+            }
+            .tab-content > .tab-pane {
+                @apply hidden;
+            }
+            .tab-content > .tab-pane.active {
+                @apply block;
+            }
+
+            /* Badges */
+            .pending-bg, .published-bg, .live-bg, .deleted-bg, .active-bg, .in-active-bg {
+                @apply inline-block text-center px-2 py-1 text-xs font-medium rounded min-w-[28px];
+            }
+            .pending-bg { @apply bg-yellow-100 text-yellow-800; }
+            .published-bg { @apply bg-blue-100 text-blue-800; }
+            .live-bg { @apply bg-green-100 text-green-800; }
+            .deleted-bg { @apply bg-red-100 text-red-800; }
+            .active-bg { @apply bg-green-500 text-white; }
+            .in-active-bg { @apply bg-red-500 text-white; }
+
+            /* Grid */
+            .row { @apply flex flex-wrap -mx-3; }
+            .col-md-2 { @apply px-3 w-full md:w-2/12; }
+            .col-md-4 { @apply px-3 w-full md:w-4/12; }
+            .col-md-8 { @apply px-3 w-full md:w-8/12; }
+            .col-md-10 { @apply px-3 w-full md:w-10/12; }
+            .col-md-12 { @apply px-3 w-full; }
+            .offset-md-2 { @apply md:ml-[16.666667%]; }
+            .offset-md-4 { @apply md:ml-[33.333333%]; }
+
+            /* Legend */
+            .list-inline {
+                @apply flex flex-wrap gap-4 text-xs;
+            }
+            .list-inline li {
+                @apply flex items-center gap-1;
+            }
+            .pending i { @apply text-yellow-500; }
+            .published i { @apply text-blue-500; }
+            .live i { @apply text-green-500; }
+            .deleted i { @apply text-red-500; }
+            .active-user i { @apply text-green-500; }
+            .in_active-user i { @apply text-red-500; }
+
+            /* Misc */
+            .title, .table-title {
+                @apply text-lg font-semibold text-neutral-800 block mb-3;
+            }
+            .clearfix { @apply clear-both; }
+            .pull-right { @apply float-right; }
+            .table-responsive { @apply overflow-x-auto; }
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 font-sans text-neutral-900">
+
+<!-- Header -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-neutral-200 shadow-sm z-50">
+    <div class="flex items-center justify-between h-full px-4">
+        <!-- Logo -->
+        <div class="flex items-center gap-2">
+            <img src="{% static 'logo.png' %}" class="w-8 h-8" alt="Logo">
+            <span class="text-xl font-semibold">
+                <span class="text-primary-500">Peel</span><span class="text-red-500">Jobs</span>
+            </span>
+        </div>
+
+        <!-- Top Menu -->
+        <nav class="flex items-center gap-1">
+            <a href="{% url 'dashboard:admin_user_list' %}" class="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md">Admin</a>
+            <a href="{% url 'dashboard:new_admin_user' %}" class="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md flex items-center gap-1">
+                <i class="fa fa-user-plus"></i> Add User
+            </a>
+            <div class="relative group">
+                <button class="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md flex items-center gap-1">
+                    <i class="fa fa-cogs"></i> Settings <i class="fa fa-chevron-down text-xs"></i>
+                </button>
+                <div class="absolute right-0 mt-1 w-40 bg-white border border-neutral-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                    <a href="{% url 'dashboard:logout' %}" class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50">Logout</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-14 bottom-0 w-56 bg-white border-r border-neutral-200 overflow-y-auto">
+    <nav class="p-3 space-y-1">
+        <!-- Dashboard -->
+        <a href="/dashboard/" class="nav-item {% if request.session.url_id == 'dashboard' %}active{% endif %}">
+            <i class="fa fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <!-- Data -->
+        <div class="nav-group">
+            <div class="nav-item {% if request.session.url_id == 'data' %}active{% endif %}" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-database"></i>
+                <span>Data</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav {% if request.session.url_id != 'data' %}hidden{% endif %}">
+                <a href="{% url 'dashboard:country' %}">Country</a>
+                <a href="{% url 'dashboard:tech_skills' %}">Technical Skills</a>
+                <a href="{% url 'dashboard:languages' %}">Languages</a>
+                <a href="{% url 'dashboard:qualifications' %}">Qualifications</a>
+                <a href="{% url 'dashboard:industries' %}">Industries</a>
+                <a href="{% url 'dashboard:functional_area' %}">Functional Areas</a>
+                <a href="{% url 'dashboard:locations' 'active' %}">Locations</a>
+                <a href="{% url 'dashboard:save_meta_data' %}">Meta Data</a>
+            </div>
+        </div>
+
+        <!-- Agencies -->
+        <div class="nav-group">
+            <div class="nav-item {% if request.session.url_id == 'company' %}active{% endif %}" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-building"></i>
+                <span>Agencies</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav {% if request.session.url_id != 'company' %}hidden{% endif %}">
+                <a href="{% url 'dashboard:companies' 'company' %}">Companies</a>
+                <a href="{% url 'dashboard:companies' 'consultant' %}">Agencies</a>
+            </div>
+        </div>
+
+        <!-- Recruiters -->
+        <a href="{% url 'dashboard:recruiters_list' 'active' %}" class="nav-item {% if request.session.url_id == 'recruiter' %}active{% endif %}">
+            <i class="fa fa-users"></i>
+            <span>Recruiters</span>
+        </a>
+
+        <!-- Job Posts -->
+        <div class="nav-group">
+            <div class="nav-item {% if request.session.url_id == 'job_post' %}active{% endif %}" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-briefcase"></i>
+                <span>Job Posts</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav {% if request.session.url_id != 'job_post' %}hidden{% endif %}">
+                <a href="{% url 'dashboard:job_posts' 'full-time' %}">Full Time</a>
+                <a href="{% url 'dashboard:job_posts' 'internship' %}">Internship</a>
+                <a href="{% url 'dashboard:job_posts' 'walk-in' %}">Walk-in</a>
+                <a href="{% url 'dashboard:job_posts' 'government' %}">Government Jobs</a>
+            </div>
+        </div>
+
+        <!-- Job Seekers -->
+        <a href="{% url 'dashboard:applicants' %}" class="nav-item {% if request.session.url_id == 'applicant' %}active{% endif %}">
+            <i class="fa fa-graduation-cap"></i>
+            <span>Job Seekers</span>
+        </a>
+
+        <!-- Search Log -->
+        <div class="nav-group">
+            <div class="nav-item {% if request.session.url_id == 'search_log' %}active{% endif %}" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-search"></i>
+                <span>Search Log</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav {% if request.session.url_id != 'search_log' %}hidden{% endif %}">
+                <a href="{% url 'dashboard:search_log' %}">Search Log</a>
+                <a href="{% url 'dashboard:search_summary' 'skills' %}">Search Summary</a>
+            </div>
+        </div>
+
+        <!-- Subscribe -->
+        <a href="{% url 'dashboard:subscribers' %}" class="nav-item {% if request.session.url_id == 'subscribers' %}active{% endif %}">
+            <i class="fa fa-bell"></i>
+            <span>Subscribe</span>
+        </a>
+
+        <!-- Duplicates -->
+        <div class="nav-group">
+            <div class="nav-item" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-copy"></i>
+                <span>Duplicates</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav hidden">
+                <a href="{% url 'dashboard:removing_duplicate_companies' %}">Company Jobposts</a>
+                <a href="{% url 'dashboard:move_duplicates' 'skills' %}">Skills</a>
+                <a href="{% url 'dashboard:move_duplicates' 'degrees' %}">Degrees</a>
+                <a href="{% url 'dashboard:move_duplicates' 'locations' %}">Locations</a>
+            </div>
+        </div>
+
+        {% if request.user|check_perm %}
+        <!-- Support -->
+        <div class="nav-group">
+            <div class="nav-item {% if request.session.url_id == 'helpdesk' %}active{% endif %}" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-headset"></i>
+                <span>Support</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav {% if request.session.url_id != 'helpdesk' %}hidden{% endif %}">
+                <a href="{% url 'tickets:admin_tickets_list' %}">Support</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Mailing -->
+        <div class="nav-group">
+            <div class="nav-item" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <i class="fa fa-envelope"></i>
+                <span>Mailing</span>
+                <i class="fa fa-chevron-down text-xs ml-auto"></i>
+            </div>
+            <div class="sub-nav hidden">
+                <a href="{% url 'dashboard:emailtemplates' %}">Templates</a>
+                <a href="{% url 'dashboard:sent_mails' %}">Sent Mails</a>
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <a href="{% url 'dashboard:reports' %}" class="nav-item {% if request.session.url_id == 'reports' %}active{% endif %}">
+            <i class="fa fa-chart-bar"></i>
+            <span>Reports</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="ml-56 mt-14 min-h-screen bg-neutral-50">
+    <div class="p-6">
+        {% block stage %}
+        {% endblock stage %}
+    </div>
+</main>
+
+<!-- Dialog container -->
+<div id="block_question" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4">
+        <div id="dialog-content" class="text-neutral-700 mb-4"></div>
+        <div class="flex justify-end">
+            <button onclick="closeDialog()" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script type="text/javascript">
+    function SetCaretAtEnd(elem) {
+        var elemLen = elem.value.length;
+        // For IE Only
+        if (document.selection) {
+            // Set focus
+            elem.focus();
+            // Use IE Ranges
+            var oSel = document.selection.createRange();
+            // Reset position to 0 & then set at end
+            oSel.moveStart('character', -elemLen);
+            oSel.moveStart('character', elemLen);
+            oSel.moveEnd('character', 0);
+            oSel.select();
+        }
+        else if (elem.selectionStart || elem.selectionStart == '0') {
+            // Firefox/Chrome
+            elem.selectionStart = elemLen;
+            elem.selectionEnd = elemLen;
+            // alert()
+            elem.focus();
+        } // if
+    } // SetCaretAtEnd()
+</script>
+{% block script %}
+{% endblock script %}
+
+<!-- tabs -->
+<script type="text/javascript">
+    $('.tab_button_row .button').click(function (e) {
+        $(this).addClass('active').siblings().removeClass('active');
+        var id_panel = $(this).attr('panelid');
+        $('#' + id_panel).addClass('active').siblings().removeClass('active');
+    })
+    // date-timepicker
+
+    $(document).ready(function () {
+        $(".knowledge-date").click(function () {
+            $("#reportrange").click();
+        });
+        $('.ui-dialog-buttonset button').attr('class', 'btn')
+
+        var dateFormat = 'MMM DD, YYYY HH:mm';
+        var Ranges = {
+            'Today': [moment({hour: 0, minute: 0}), moment()],
+            'Yesterday': [moment({hour: 0, minute: 0}).subtract(1, 'days'), moment({
+                hour: 23,
+                minute: 59
+            }).subtract(1, 'days')],
+            'Last 7 Days': [moment({hour: 0, minute: 0}).subtract(6, 'days'), moment({hour: 23, minute: 59})],
+            'Last 30 Days': [moment({hour: 0, minute: 0}).subtract(29, 'days'), moment({hour: 23, minute: 59})],
+            'This Month': [moment({hour: 0, minute: 0}).startOf('month'), moment({
+                hour: 23,
+                minute: 59
+            }).endOf('month')],
+            'Last Month': [moment({hour: 0, minute: 0}).subtract(1, 'month').startOf('month'), moment({
+                hour: 23,
+                minute: 59
+            }).subtract(1, 'month').endOf('month')]
+        };
+
+        var datePickerConfig = {
+            autoApply: true,
+            timePicker: true,
+            timePicker24Hour: true,
+            locale: { format: dateFormat },
+            ranges: Ranges
+        };
+
+        $('#reportrange').daterangepicker(datePickerConfig, function(start, end) {
+            $(this.element).val(start.format(dateFormat) + ' - ' + end.format(dateFormat));
+        });
+
+        $('#reportrange1').daterangepicker(datePickerConfig, function(start, end) {
+            $(this.element).val(start.format(dateFormat) + ' - ' + end.format(dateFormat));
+        });
+
+        $('#reportrange2').daterangepicker(datePickerConfig, function(start, end) {
+            $(this.element).val(start.format(dateFormat) + ' - ' + end.format(dateFormat));
+        });
+
+        $('#event_date').daterangepicker({
+            autoApply: true,
+            singleDatePicker: true,
+            showDropdowns: true,
+            timePicker: true,
+            locale: { format: 'MM/DD/YYYY HH:mm:ss' },
+            ranges: Ranges
+        });
+    });
+
+    // Dialog functions
+    window.dialogRedirectUrl = null;
+
+    function open_dialog(text, title) {
+        $('#dialog-content').text(text);
+        $('#block_question').removeClass('hidden');
+        window.dialogRedirectUrl = null;
+    }
+
+    function open_dialog_with_url(text, title, url) {
+        $('#dialog-content').text(text);
+        $('#block_question').removeClass('hidden');
+        window.dialogRedirectUrl = url;
+    }
+
+    function closeDialog() {
+        $('#block_question').addClass('hidden');
+        if (window.dialogRedirectUrl) {
+            window.location = window.dialogRedirectUrl;
+        } else {
+            window.scrollTo(0, 0);
+        }
+    }
+
+    // Close dialog on backdrop click
+    $('#block_question').on('click', function(e) {
+        if (e.target === this) {
+            closeDialog();
+        }
+    });
+</script>
+</body>
+</html>

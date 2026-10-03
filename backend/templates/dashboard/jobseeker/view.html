@@ -1,0 +1,565 @@
+{% extends "dashboard/base.html" %}
+{% load thumbnail %}
+{% load tz %}
+{% load static %}
+{% load page_tags %}
+{% block stage %}
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'dashboard:applicants' %}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors">
+        <i class="fa fa-arrow-left"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-900">{{ applicant.get_full_name|default:applicant.username }}</h1>
+        <p class="text-sm text-neutral-500 mt-0.5">Job Seeker Profile</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      {% if applicant.is_active %}
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+        <i class="fa fa-check-circle mr-1.5"></i>Active
+      </span>
+      {% else %}
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+        <i class="fa fa-times-circle mr-1.5"></i>Inactive
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Profile Card -->
+  <div class="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-8">
+      <div class="flex items-center gap-5">
+        <div class="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden border-4 border-white/30">
+          {% if applicant.photo %}
+          <img src="{{ applicant.photo }}" class="w-full h-full object-cover" alt="{{ applicant.username }}">
+          {% else %}
+          <img src="{% static 'dummy.jpg' %}" class="w-full h-full object-cover" alt="Default">
+          {% endif %}
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-white">{{ applicant.username }}</h2>
+          <p class="text-green-100 text-sm mt-1">
+            <i class="fa fa-envelope mr-1"></i>{{ applicant.email }}
+          </p>
+          <!-- Social Links -->
+          <div class="flex items-center gap-3 mt-3">
+            <!-- Facebook/GitHub removed -->
+            {% if applicant.is_so_connected %}
+            <a href="{{ applicant.get_stack_overflow_object.link }}" target="_blank" class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white hover:bg-orange-600 transition-colors">
+              <i class="fa-brands fa-stack-overflow text-sm"></i>
+            </a>
+            {% else %}
+            <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white/50">
+              <i class="fa-brands fa-stack-overflow text-sm"></i>
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Profile Completeness -->
+        <div class="ml-auto text-right">
+          <div class="text-green-100 text-xs uppercase tracking-wider mb-1">Profile Complete</div>
+          <div class="text-3xl font-bold {% if applicant.profile_completion_percentage < 50 %}text-red-300{% else %}text-white{% endif %}">
+            {{ applicant.profile_completion_percentage }}%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Details -->
+    <div class="p-6">
+      <div class="flex items-center gap-2 mb-6">
+        <i class="fa fa-user text-primary-500"></i>
+        <h3 class="text-lg font-semibold text-neutral-800">User Details</h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">First Name</label>
+          <p class="text-neutral-900 mt-1">{{ applicant.first_name|default:"Not Specified" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Last Name</label>
+          <p class="text-neutral-900 mt-1">{{ applicant.last_name|default:"Not Specified" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Email</label>
+          <p class="text-neutral-900 mt-1 break-all">{{ applicant.email }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Mobile</label>
+          <p class="text-neutral-900 mt-1">{{ applicant.mobile|default:"Not Specified" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Date of Birth</label>
+          <p class="text-neutral-900 mt-1">{{ applicant.dob|default:"Not Specified" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Gender</label>
+          <p class="text-neutral-900 mt-1">{{ applicant.gender|default:"Not Specified" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Current Location</label>
+          <p class="text-neutral-900 mt-1">{% if applicant.current_city %}{{ applicant.current_city.name }}{% else %}Not Available{% endif %}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Marital Status</label>
+          <p class="text-neutral-900 mt-1">{{ applicant.marital_status|default:"Not Specified" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Registration Type</label>
+          <p class="text-neutral-900 mt-1">{% if applicant.registered_from == 'Email' %}Manual{% else %}Social{% endif %}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Registered On</label>
+          <p class="text-neutral-900 mt-1 text-sm">{{ applicant.date_joined|timezone:"Asia/Calcutta" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Last Login</label>
+          <p class="text-neutral-900 mt-1 text-sm">{{ applicant.last_login|timezone:"Asia/Calcutta" }}</p>
+        </div>
+        <div class="bg-neutral-50 rounded-lg p-4">
+          <label class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Profile Updated</label>
+          <p class="text-neutral-900 mt-1 text-sm">{{ applicant.profile_updated|timezone:"Asia/Calcutta" }}</p>
+        </div>
+      </div>
+
+      <!-- Resume & Skills -->
+      <div class="mt-6 pt-6 border-t border-neutral-200">
+        <div class="flex flex-wrap gap-4">
+          {% if applicant.resume %}
+          <div class="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-3 cursor-pointer hover:bg-blue-100 transition-colors download" id="{{ applicant.resume|get_s3_url }}">
+            <i class="fa fa-file-pdf text-blue-600 text-xl"></i>
+            <div>
+              <p class="text-sm font-medium text-blue-900">Resume</p>
+              <p class="text-xs text-blue-600">{{ applicant.resume|get_resume_name }}</p>
+            </div>
+            <i class="fa fa-download text-blue-400 ml-2"></i>
+          </div>
+          {% endif %}
+          {% if applicant.get_major_skills %}
+          <div class="flex-1">
+            <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">Major Skills</p>
+            <div class="flex flex-wrap gap-2">
+              {% for skill in applicant.get_major_skills %}
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                <i class="fa fa-star text-yellow-500 mr-1.5 text-xs"></i>{{ skill.skill.name }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Section -->
+  <div class="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+    <!-- Tab Buttons -->
+    <div class="border-b border-neutral-200 px-6 overflow-x-auto">
+      <div class="flex gap-1 min-w-max">
+        <button class="tab-btn px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-300 transition-colors active" data-tab="user_profile">
+          <i class="fa fa-user mr-1.5"></i>Profile
+        </button>
+        <!-- GitHub tab removed -->
+        <button class="tab-btn px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-300 transition-colors" data-tab="applied_jobs">
+          <i class="fa fa-check-square mr-1.5"></i>Applied Jobs
+        </button>
+        <button class="tab-btn px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-300 transition-colors" data-tab="visited_jobs">
+          <i class="fa fa-eye mr-1.5"></i>Visited Jobs
+        </button>
+        <button class="tab-btn px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-300 transition-colors" data-tab="skills_subscribed">
+          <i class="fa fa-envelope mr-1.5"></i>Subscribed Skills
+        </button>
+        <button class="tab-btn px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-300 transition-colors" data-tab="search_done">
+          <i class="fa fa-search mr-1.5"></i>Search History
+        </button>
+        <button class="tab-btn px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-600 border-b-2 border-transparent hover:border-primary-300 transition-colors" data-tab="alerts_created">
+          <i class="fa fa-bell mr-1.5"></i>Job Alerts
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+      <!-- Profile Tab -->
+      <div class="tab-content active" id="user_profile">
+        <div class="space-y-6">
+          <!-- Profile Info -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-id-card text-primary-500"></i>Profile Information
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div><span class="text-neutral-500">Current Location:</span> <span class="text-neutral-900 ml-2">{% if applicant.current_city %}{{ applicant.current_city.name }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Preferred Location:</span> <span class="text-neutral-900 ml-2">{% if applicant.preferred_city.all %}{% for location in applicant.preferred_city.all %}{{ location.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Nationality:</span> <span class="text-neutral-900 ml-2">{% if nationality %}{{ nationality.name }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Industry:</span> <span class="text-neutral-900 ml-2">{% if applicant.industry.all %}{% for industry in applicant.industry.all %}{{ industry.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Functional Area:</span> <span class="text-neutral-900 ml-2">{% if applicant.functional_area.all %}{% for fa in applicant.functional_area.all %}{{ fa.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+            </div>
+            {% if applicant.address or applicant.permanent_address %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-neutral-200 text-sm">
+              <div><span class="text-neutral-500">Present Address:</span><div class="text-neutral-900 mt-1">{% if applicant.address %}{{ applicant.address|linebreaks }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</div></div>
+              <div><span class="text-neutral-500">Permanent Address:</span><div class="text-neutral-900 mt-1">{% if applicant.permanent_address %}{{ applicant.permanent_address|linebreaks }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</div></div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Profile Description -->
+          {% if applicant.profile_description %}
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2">
+              <i class="fa fa-file-alt text-primary-500"></i>Profile Description
+            </h4>
+            <p class="text-neutral-700 text-sm">{{ applicant.profile_description }}</p>
+          </div>
+          {% endif %}
+
+          <!-- User Emails -->
+          {% if applicant.get_user_emails %}
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-3 flex items-center gap-2">
+              <i class="fa fa-envelope text-primary-500"></i>User Emails
+            </h4>
+            <div class="flex flex-wrap gap-2">
+              {% for email in applicant.get_user_emails %}
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm {% if email.is_primary %}bg-green-100 text-green-800{% else %}bg-neutral-200 text-neutral-700{% endif %}">
+                {{ email.email }}{% if email.is_primary %} <span class="ml-1 text-xs">(Primary)</span>{% endif %}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Professional Info -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-briefcase text-primary-500"></i>Professional Information
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+              <div><span class="text-neutral-500">Total Experience:</span> <span class="text-neutral-900 ml-2">{% if applicant.year %}{{ applicant.year }} Year(s) {{ applicant.month }} Month(s){% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Preferred Industry:</span> <span class="text-neutral-900 ml-2">{% if applicant.prefered_industry %}{{ applicant.prefered_industry.name }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Current Salary:</span> <span class="text-neutral-900 ml-2">{% if applicant.current_salary %}<i class="fa fa-inr"></i> {{ applicant.current_salary|get_formatted_salary }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Expected Salary:</span> <span class="text-neutral-900 ml-2">{% if applicant.expected_salary %}<i class="fa fa-inr"></i> {{ applicant.expected_salary|get_formatted_salary }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Job Role:</span> <span class="text-neutral-900 ml-2">{% if applicant.job_role %}{{ applicant.job_role }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+              <div><span class="text-neutral-500">Notice Period:</span> <span class="text-neutral-900 ml-2">{% if applicant.notice_period %}{{ applicant.notice_period }}{% else %}<span class="text-red-500">Not Specified</span>{% endif %}</span></div>
+            </div>
+          </div>
+
+          <!-- Employment History -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-building text-primary-500"></i>Employment History
+            </h4>
+            {% if applicant.employment_history.all %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-neutral-100">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Company</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Designation</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">From</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">To</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Salary</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200">
+                  {% for history in applicant.employment_history.all %}
+                  <tr>
+                    <td class="px-4 py-2">{{ history.company }}</td>
+                    <td class="px-4 py-2">{{ history.designation }}</td>
+                    <td class="px-4 py-2">{{ history.from_date }}</td>
+                    <td class="px-4 py-2">{% if history.to_date %}{{ history.to_date }}{% else %}Present{% endif %}</td>
+                    <td class="px-4 py-2">{% if history.salary %}<i class="fa fa-inr"></i> {{ history.salary|get_formatted_salary }}{% else %}N/A{% endif %}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-red-500 text-sm">Not Specified</p>
+            {% endif %}
+          </div>
+
+          <!-- Education -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-graduation-cap text-primary-500"></i>Education
+            </h4>
+            {% if applicant.education.all %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-neutral-100">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Institute</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Degree</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Duration</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Specialization</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Score</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200">
+                  {% for education in applicant.education.all %}
+                  <tr>
+                    <td class="px-4 py-2">{{ education.institute.name }}</td>
+                    <td class="px-4 py-2">{{ education.degree.degree_name }}</td>
+                    <td class="px-4 py-2">{{ education.from_date }} - {% if education.to_date %}{{ education.to_date }}{% else %}Present{% endif %}</td>
+                    <td class="px-4 py-2">{{ education.degree.specialization|default:"N/A" }}</td>
+                    <td class="px-4 py-2">{{ education.score|default:"N/A" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-red-500 text-sm">Not Specified</p>
+            {% endif %}
+          </div>
+
+          <!-- Technical Skills -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-code text-primary-500"></i>Technical Skills
+            </h4>
+            {% if applicant.skills.all %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-neutral-100">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Skill</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Experience</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Version</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Proficiency</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Last Used</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Major</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200">
+                  {% for skill in applicant.skills.all %}
+                  <tr>
+                    <td class="px-4 py-2 font-medium">{{ skill.skill.name }}</td>
+                    <td class="px-4 py-2">{{ skill.year }} Yr {{ skill.month }} Mo</td>
+                    <td class="px-4 py-2">{{ skill.version|default:"N/A" }}</td>
+                    <td class="px-4 py-2">{{ skill.proficiency|default:"N/A" }}</td>
+                    <td class="px-4 py-2">{{ skill.last_used|default:"N/A" }}</td>
+                    <td class="px-4 py-2">{% if skill.is_major %}<i class="fa fa-star text-yellow-500"></i>{% else %}-{% endif %}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-red-500 text-sm">Not Specified</p>
+            {% endif %}
+          </div>
+
+          <!-- Projects -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-project-diagram text-primary-500"></i>Projects
+            </h4>
+            {% if applicant.project.all %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-neutral-100">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Name</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Duration</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Skills</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Role</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200">
+                  {% for project in applicant.project.all %}
+                  <tr>
+                    <td class="px-4 py-2 font-medium">{{ project.name }}</td>
+                    <td class="px-4 py-2">{{ project.from_date }} - {{ project.to_date|default:"Present" }}</td>
+                    <td class="px-4 py-2">{% for skill in project.skills.all %}{{ skill.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                    <td class="px-4 py-2">{{ project.role|default:"N/A" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-red-500 text-sm">Not Specified</p>
+            {% endif %}
+          </div>
+
+          <!-- Languages -->
+          <div class="bg-neutral-50 rounded-lg p-5">
+            <h4 class="text-sm font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-language text-primary-500"></i>Languages
+            </h4>
+            {% if applicant.language.all %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-neutral-100">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Language</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Read</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Write</th>
+                    <th class="px-4 py-2 text-left font-medium text-neutral-700">Speak</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200">
+                  {% for language in applicant.language.all %}
+                  <tr>
+                    <td class="px-4 py-2 font-medium">{{ language.language.name }}</td>
+                    <td class="px-4 py-2">{{ language.read }}</td>
+                    <td class="px-4 py-2">{{ language.write }}</td>
+                    <td class="px-4 py-2">{{ language.speak }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-red-500 text-sm">Not Specified</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub Tab removed -->
+
+      <!-- Applied Jobs Tab -->
+      <div class="tab-content hidden" id="applied_jobs">
+        {% if applicant.get_all_applied_jobs %}
+        <div class="space-y-3">
+          {% for job in applicant.get_all_applied_jobs %}
+          <div class="bg-neutral-50 rounded-lg p-4 hover:bg-neutral-100 transition-colors">
+            <a href="/dashboard/jobpost/view/{{ job.job_post.id }}/" class="text-primary-600 font-medium hover:text-primary-700">{{ job.job_post.title }}</a>
+            <div class="flex gap-6 mt-2 text-sm text-neutral-500">
+              <span><i class="fa fa-user mr-1"></i>{{ job.job_post.user.email }}</span>
+              <span><i class="fa fa-calendar mr-1"></i>{{ job.job_post.applied_on }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <i class="fa fa-briefcase text-4xl text-neutral-300 mb-3"></i>
+          <p class="text-neutral-500">User has not applied to any jobs</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Visited Jobs Tab -->
+      <div class="tab-content hidden" id="visited_jobs">
+        {% if applicant.get_visited_jobs %}
+        <div class="space-y-3">
+          {% for job in applicant.get_visited_jobs %}
+          <div class="bg-neutral-50 rounded-lg p-4 hover:bg-neutral-100 transition-colors">
+            <a href="/dashboard/jobpost/view/{{ job.job_post.id }}/" class="text-primary-600 font-medium hover:text-primary-700">{{ job.job_post.title }}</a>
+            <div class="flex gap-6 mt-2 text-sm text-neutral-500">
+              <span><i class="fa fa-user mr-1"></i>{{ job.job_post.user.email }}</span>
+              <span><i class="fa fa-eye mr-1"></i>Visited: {{ job.visited_on }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <i class="fa fa-eye text-4xl text-neutral-300 mb-3"></i>
+          <p class="text-neutral-500">User hasn't visited any jobs</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Skills Subscribed Tab -->
+      <div class="tab-content hidden" id="skills_subscribed">
+        {% if applicant.get_subscribed_skills %}
+        <div class="flex flex-wrap gap-3">
+          {% for skill in applicant.get_subscribed_skills %}
+          <a href="{{ skill.get_job_url }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors">
+            {{ skill.name }}
+            <span class="bg-primary-200 text-primary-800 text-xs px-2 py-0.5 rounded-full">{{ skill.get_no_of_jobposts|length }}</span>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <i class="fa fa-envelope text-4xl text-neutral-300 mb-3"></i>
+          <p class="text-neutral-500">No skills subscribed</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Search History Tab -->
+      <div class="tab-content hidden" id="search_done">
+        {% if applicant.get_search_done %}
+        <div class="space-y-3">
+          {% for search in applicant.get_search_done %}
+          <div class="bg-neutral-50 rounded-lg p-4">
+            <a href="{% url 'dashboard:view_search_log' search.id %}" class="text-primary-600 font-medium hover:text-primary-700">{{ search.search_text.skills }}</a>
+            <div class="flex gap-6 mt-2 text-sm text-neutral-500">
+              <span><i class="fa fa-calendar mr-1"></i>{{ search.search_on|timezone:'Asia/Calcutta' }}</span>
+              <span><i class="fa fa-briefcase mr-1"></i>{{ search.job_post }} jobs shown</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <i class="fa fa-search text-4xl text-neutral-300 mb-3"></i>
+          <p class="text-neutral-500">No search history</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Job Alerts Tab -->
+      <div class="tab-content hidden" id="alerts_created">
+        {% if applicant.get_user_alerts %}
+        <div class="space-y-4">
+          {% for alert in applicant.get_user_alerts %}
+          <div class="bg-neutral-50 rounded-lg p-5">
+            {# The per-alert results page went with candidate/; the SvelteKit
+               site has no equivalent, so this is a label now, not a link. #}
+            <span class="text-lg font-medium text-neutral-900">{{ alert.name }}</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
+              <div><span class="text-neutral-500">Skills:</span> <span class="text-neutral-900 ml-2">{% for skill in alert.skill.all %}{{ skill.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></div>
+              <div><span class="text-neutral-500">Location:</span> <span class="text-neutral-900 ml-2">{% if alert.location.all %}{% for location in alert.location.all %}{{ location.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Not Specified{% endif %}</span></div>
+              <div><span class="text-neutral-500">Experience:</span> <span class="text-neutral-900 ml-2">{% if alert.min_year or alert.max_year %}{{ alert.min_year }} - {{ alert.max_year }} Years{% else %}Not Specified{% endif %}</span></div>
+              <div><span class="text-neutral-500">Salary:</span> <span class="text-neutral-900 ml-2">{% if alert.min_salary or alert.max_salary %}<i class="fa fa-inr"></i> {{ alert.min_salary|get_formatted_salary }} - {{ alert.max_salary|get_formatted_salary }}{% else %}Not Specified{% endif %}</span></div>
+              <div><span class="text-neutral-500">Role:</span> <span class="text-neutral-900 ml-2">{{ alert.role|default:"Not Specified" }}</span></div>
+              <div><span class="text-neutral-500">Industry:</span> <span class="text-neutral-900 ml-2">{% if alert.industry.all %}{% for industry in alert.industry.all %}{{ industry.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Not Specified{% endif %}</span></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <i class="fa fa-bell text-4xl text-neutral-300 mb-3"></i>
+          <p class="text-neutral-500">No job alerts created</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+  // Tab switching
+  $('.tab-btn').click(function() {
+    $('.tab-btn').removeClass('active text-primary-600 border-primary-500').addClass('text-neutral-600 border-transparent');
+    $(this).addClass('active text-primary-600 border-primary-500').removeClass('text-neutral-600 border-transparent');
+
+    var tabId = $(this).data('tab');
+    $('.tab-content').addClass('hidden').removeClass('active');
+    $('#' + tabId).removeClass('hidden').addClass('active');
+  });
+
+  // Resume download
+  $(".download").click(function(e) {
+    window.location = $(this).attr('id');
+  });
+</script>
+{% endblock %}

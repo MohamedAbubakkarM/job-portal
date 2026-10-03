@@ -1,0 +1,333 @@
+from django.urls import re_path as url
+
+from .views import (
+    admin_user_list,
+    applicant_actions,
+    applicants,
+    companies,
+    company_jobposts,
+    company_recruiters,
+    company_tickets,
+    country,
+    dashboard_google_login,
+    dashboard_login,
+    dashboard_logout,
+    deactivate_job,
+    delete_company,
+    delete_functional_area,
+    delete_industry,
+    delete_job,
+    delete_language,
+    delete_menu,
+    delete_qualification,
+    delete_sent_mail,
+    delete_skill,
+    delete_template,
+    delete_user,
+    edit_company,
+    edit_govt_job,
+    edit_job_title,
+    edit_menu,
+    edit_template,
+    edit_user,
+    emailtemplates,
+    enable_agency,
+    enable_company,
+    enable_job,
+    enable_paid_company,
+    functional_area,
+    functional_area_status,
+    index,
+    industries,
+    industry_status,
+    languages,
+    locations,
+    mail_to_recruiter,
+    menu_order,
+    menu_status,
+    moving_duplicates,
+    new_admin_user,
+    new_company,
+    new_template,
+    post_detail,
+    post_list,
+    preview_job,
+    publish_job,
+    qualification_status,
+    qualifications,
+    recruiter_delete,
+    recruiter_paid_status_change,
+    recruiter_status_change,
+    recruiters_list,
+    # applicants_mail,
+    removing_duplicate_companies,
+    reports,
+    save_meta_data,
+    search_log,
+    search_summary,
+    send_mail,
+    sent_mails,
+    skill_status,
+    status_change,
+    subscribers,
+    tech_skills,
+    view_applicant,
+    view_company,
+    view_recruiter,
+    view_search_log,
+    view_sent_mail,
+    view_subscribers,
+    view_template,
+    view_user,
+)
+
+app_name = "dashboard"
+
+urlpatterns = [
+    # Authentication
+    url(r"^login/$", dashboard_login, name="login"),
+    url(r"^google-login/$", dashboard_google_login, name="google_login"),
+    url(r"^logout/$", dashboard_logout, name="logout"),
+    # Dashboard home
+    url(r"^$", index, name="index"),
+    # users
+    url(r"^users/list/$", admin_user_list, name="admin_user_list"),
+    url(r"^users/new-user/$", new_admin_user, name="new_admin_user"),
+    url(r"^users/edit/(?P<user_id>[-\w]+)/$", edit_user, name="edit_user"),
+    url(r"^users/view/(?P<user_id>[-\w]+)/$", view_user, name="view_user"),
+    url(r"^users/delete/(?P<user_id>[-\w]+)/$", delete_user, name="delete_user"),
+    # data
+    url(r"^country/$", country, name="country"),
+    url(r"^(?P<status>[-\w]+)/locations/$", locations, name="locations"),
+    # technical skill
+    url(r"^technical_skills/$", tech_skills, name="tech_skills"),
+    url(r"^delete_skill/(?P<skill_id>[-\w]+)/$", delete_skill, name="delete_skill"),
+    url(r"^skill/status/(?P<skill_id>[-\w]+)/$", skill_status, name="skill_status"),
+    # languages
+    url(r"^languages/$", languages, name="languages"),
+    url(
+        r"^delete_language/(?P<language_id>[-\w]+)/$",
+        delete_language,
+        name="delete_language",
+    ),
+    # qualification
+    url(r"^qualifications/$", qualifications, name="qualifications"),
+    url(
+        r"^delete_qualification/(?P<qualification_id>[-\w]+)/$",
+        delete_qualification,
+        name="delete_qualification",
+    ),
+    url(
+        r"^qualification/status/(?P<qualification_id>[-\w]+)/$",
+        qualification_status,
+        name="qualification_status",
+    ),
+    # industry
+    url(r"^industries/$", industries, name="industries"),
+    url(
+        r"^delete_industry/(?P<industry_id>[-\w]+)/$",
+        delete_industry,
+        name="delete_industry",
+    ),
+    url(
+        r"^industry/status/(?P<industry_id>[-\w]+)/$",
+        industry_status,
+        name="industry_status",
+    ),
+    # functinal area
+    url(r"^functional_area/$", functional_area, name="functional_area"),
+    url(
+        r"^functional_area/(?P<functional_area_id>[-\w]+)/$",
+        delete_functional_area,
+        name="delete_functional_area",
+    ),
+    url(
+        r"^functional_area/status/(?P<functional_area_id>[-\w]+)/$",
+        functional_area_status,
+        name="functional_area_status",
+    ),
+    # recruiter
+    url(
+        r"^recruiters/(?P<status>[-\w]+)/list/$",
+        recruiters_list,
+        name="recruiters_list",
+    ),
+    url(
+        r"^recruiter/view/(?P<user_id>[a-zA-Z0-9_-]+)/$",
+        view_recruiter,
+        name="view_recruiter",
+    ),
+    url(
+        r"^recruiter/status/(?P<user_id>[a-zA-Z0-9_-]+)/$",
+        recruiter_status_change,
+        name="recruiter_status_change",
+    ),
+    url(
+        r"^recruiter/remove/(?P<user_id>[a-zA-Z0-9_-]+)/$",
+        recruiter_delete,
+        name="recruiter_delete",
+    ),
+    url(
+        r"^recruiter/paid-status/(?P<user_id>[a-zA-Z0-9_-]+)/$",
+        recruiter_paid_status_change,
+        name="recruiter_paid_status_change",
+    ),
+    # jobposts
+    url(r"^jobpost/(?P<job_type>[-\w]+)/list/", post_list, name="job_posts"),
+    url(r"^jobpost/view/(?P<post_id>[-\w]+)/", post_detail, name="post_detail"),
+    url(
+        r"^jobpost/status_change/(?P<post_id>[-\w]+)/$",
+        status_change,
+        name="status_change",
+    ),
+    url(
+        r"^jobpost/deactivate/(?P<job_post_id>[a-zA-Z0-9]+)/$",
+        deactivate_job,
+        name="deactivate_job",
+    ),
+    url(r"^jobpost/enable/(?P<job_post_id>[a-zA-Z0-9]+)/$", enable_job, name="enable"),
+    url(r"^jobpost/delete/(?P<job_post_id>[a-zA-Z0-9]+)/$", delete_job, name="delete"),
+    url(
+        r"^jobpost/publish/(?P<job_post_id>[a-zA-Z0-9]+)/$", publish_job, name="publish"
+    ),
+    url(r"^jobpost/edit/(?P<post_id>[-\w]+)/$", edit_govt_job, name="edit_govt_job"),
+    url(r"^jobpost/preview/(?P<post_id>[-\w]+)/$", preview_job, name="preview_job"),
+    url(
+        r"^jobpost/title/edit/(?P<post_id>[-\w]+)/$",
+        edit_job_title,
+        name="edit_job_title",
+    ),
+    url(
+        r"^jobpost/mail_to_recruiter/(?P<job_post_id>[-\w]+)/$",
+        mail_to_recruiter,
+        name="mail_to_recruiter",
+    ),
+    # applicants
+    url(r"^applicants/list/$", applicants, name="applicants"),
+    url(r"^applicants/(?P<status>[-\w]+)/list/$", applicants, name="applicants"),
+    url(
+        r"^applicant/view/(?P<user_id>[a-zA-Z0-9_-]+)/$",
+        view_applicant,
+        name="view_applicant",
+    ),
+    url(
+        r"^applicant/actions/(?P<user_id>[a-zA-Z0-9_-]+)/$",
+        applicant_actions,
+        name="applicant_actions",
+    ),
+    # mail templates
+    url(r"^mail-template/list/", emailtemplates, name="emailtemplates"),
+    url(r"^mail-template/new/", new_template, name="new_template"),
+    url(
+        r"^mail-template/edit/(?P<template_id>[-\w]+)/",
+        edit_template,
+        name="edit_mailtemplate",
+    ),
+    url(
+        r"^mail-template/view/(?P<template_id>[-\w]+)/",
+        view_template,
+        name="view_mailtemplate",
+    ),
+    url(
+        r"^mail-template/delete/(?P<template_id>[-\w]+)/",
+        delete_template,
+        name="delete_mailtemplate",
+    ),
+    url(r"^send_mail/(?P<template_id>[-\w]+)/", send_mail, name="send_mail"),
+    # view sent mails
+    url(r"^sent-mail/list/", sent_mails, name="sent_mails"),
+    url(
+        r"^sent-mail/view/(?P<sent_mail_id>[-\w]+)/",
+        view_sent_mail,
+        name="view_sent_mail",
+    ),
+    url(
+        r"^sent-mail/delete/(?P<sent_mail_id>[-\w]+)/",
+        delete_sent_mail,
+        name="delete_sent_mail",
+    ),
+    # view search logs
+    url(r"^search-log/list/", search_log, name="search_log"),
+    url(
+        r"^search-log/view/(?P<search_log_id>[-\w]+)/",
+        view_search_log,
+        name="view_search_log",
+    ),
+    # view search logs
+    url(r"^subscribers/list/", subscribers, name="subscribers"),
+    url(
+        r"^subscribers/view/(?P<skill_id>[-\w]+)/",
+        view_subscribers,
+        name="view_subscribers",
+    ),
+    url(
+        r"^search/(?P<search_type>[-\w]+)/summary/",
+        search_summary,
+        name="search_summary",
+    ),
+    # url(r"^applicants-mails/", applicants_mail, name="applicants_mail"),
+    url(
+        r"^update-company-jobposts/",
+        removing_duplicate_companies,
+        name="removing_duplicate_companies",
+    ),
+    url(r"^reports/", reports, name="reports"),
+    # companies
+    url(r"^companies/new/", new_company, name="new_company"),
+    url(r"^companies/edit/(?P<company_id>[-\w]+)/", edit_company, name="edit_company"),
+    url(r"^companies/(?P<company_type>[-\w]+)/list/", companies, name="companies"),
+    url(
+        r"^company/status/(?P<company_id>[-\w]+)/",
+        enable_company,
+        name="enable_company",
+    ),
+    url(r"^company/agency/(?P<agency_id>[-\w]+)/", enable_agency, name="enable_agency"),
+    url(
+        r"^company/delete/(?P<company_id>[-\w]+)/",
+        delete_company,
+        name="delete_company",
+    ),
+    url(
+        r"^company/paid/(?P<company_id>[-\w]+)/",
+        enable_paid_company,
+        name="enable_paid_company",
+    ),
+    url(r"^company/view/(?P<company_id>[-\w]+)/", view_company, name="view_company"),
+    url(
+        r"^company/(?P<company_id>[-\w]+)/recruiters/(?P<status>[-\w]+)/list/",
+        company_recruiters,
+        name="company_recruiters",
+    ),
+    url(
+        r"^company/jobposts/(?P<company_id>[-\w]+)/",
+        company_jobposts,
+        name="company_jobposts",
+    ),
+    url(
+        r"^company/tickets/(?P<company_id>[-\w]+)/",
+        company_tickets,
+        name="company_tickets",
+    ),
+    url(
+        r"^company/(?P<company_id>[-\w]+)/menu/edit/(?P<menu_id>[a-zA-Z0-9]+)/$",
+        edit_menu,
+        name="edit_menu",
+    ),
+    url(
+        r"^company/(?P<company_id>[-\w]+)/menu/delete/(?P<menu_id>[a-zA-Z0-9]+)/$",
+        delete_menu,
+        name="delete_menu",
+    ),
+    url(
+        r"^company/(?P<company_id>[-\w]+)/menu/status/(?P<menu_id>[a-zA-Z0-9]+)/$",
+        menu_status,
+        name="menu_status",
+    ),
+    url(r"^company/(?P<company_id>[-\w]+)/menu/order/$", menu_order, name="menu_order"),
+    url(r"^save/meta-data/", save_meta_data, name="save_meta_data"),
+    url(
+        r"^moving/duplicate/(?P<value>[-\w]+)/",
+        moving_duplicates,
+        name="move_duplicates",
+    ),
+]

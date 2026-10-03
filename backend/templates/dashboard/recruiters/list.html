@@ -1,0 +1,275 @@
+{% extends 'dashboard/base.html' %}
+{% load tz %}
+{% load page_tags %}
+{% block stage %}
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-neutral-900">Recruiters</h1>
+      <div class="flex items-center gap-2 mt-2">
+        <a href="{% url 'dashboard:recruiters_list' 'active' %}"
+           class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full transition-colors {% if status == 'active' %}bg-primary-500 text-white{% else %}bg-neutral-100 text-neutral-600 hover:bg-neutral-200{% endif %}">
+          Active
+        </a>
+        <a href="{% url 'dashboard:recruiters_list' 'inactive' %}"
+           class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full transition-colors {% if status == 'inactive' %}bg-primary-500 text-white{% else %}bg-neutral-100 text-neutral-600 hover:bg-neutral-200{% endif %}">
+          Inactive
+        </a>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-xs">
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-neutral-400"></span> Draft</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> Pending</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Published</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Live</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Deleted</span>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+    <!-- Search & Filter -->
+    <div class="p-4 border-b border-neutral-200">
+      <form name="recruiterform" id="recruiterform" method="POST" class="flex flex-wrap items-center gap-4">
+        {% csrf_token %}
+        <div class="flex-1 min-w-[200px] max-w-sm">
+          <div class="relative">
+            <input type="text"
+                   name="search"
+                   id="search"
+                   class="form-control pl-10"
+                   placeholder="Search recruiters..."
+                   value="{{ request.POST.search }}"/>
+            <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"></i>
+          </div>
+        </div>
+        <div class="relative w-64">
+          <input type="text"
+                 class="form-control pl-10"
+                 id="reportrange"
+                 name="timestamp"
+                 value="{{request.POST.timestamp}}"
+                 placeholder="Select date range">
+          <i class="fa fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"></i>
+          <input type="hidden" name="alphabet_value" id="alphabet_value" value="{{request.POST.alphabet_value}}">
+          <input type="hidden" name="page" id="page" value="{% if request.POST %}{{ request.POST.page }}{% else %}{{ request.GET.page}}{% endif %}">
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-search mr-2"></i>Search
+        </button>
+      </form>
+    </div>
+
+    <!-- Alphabet Filter -->
+    <div class="px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
+      <div class="flex flex-wrap items-center justify-center gap-1">
+        <a href="#" class="alpha-filter inline-flex items-center justify-center w-8 h-8 rounded text-xs font-medium text-neutral-600 hover:bg-primary-100 hover:text-primary-700 transition-colors">All</a>
+        {% for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" %}
+        <a href="#" class="{{ letter|lower }} alpha-filter inline-flex items-center justify-center w-8 h-8 rounded text-xs font-medium text-neutral-600 hover:bg-primary-100 hover:text-primary-700 transition-colors">{{ letter }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if recruiters %}
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-neutral-50 border-b border-neutral-200">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-neutral-700 w-10">#</th>
+            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Email</th>
+            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Name</th>
+            <th class="px-4 py-3 text-left font-semibold text-neutral-700 w-[20%]">Job Posts</th>
+            <th class="px-4 py-3 text-left font-semibold text-neutral-700">Joined On</th>
+            <th class="px-4 py-3 text-center font-semibold text-neutral-700">Mobile</th>
+            <th class="px-4 py-3 text-center font-semibold text-neutral-700">Social</th>
+            <th class="px-4 py-3 text-left font-semibold text-neutral-700 w-32">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-100">
+          {% for recruiter in recruiters %}
+          <tr class="hover:bg-neutral-50 transition-colors">
+            <td class="px-4 py-3 text-neutral-500">{{forloop.counter}}</td>
+            <td class="px-4 py-3">
+              <a href="{% url 'dashboard:view_recruiter' recruiter.id %}" class="font-medium text-primary-600 hover:text-primary-700">
+                {{ recruiter.email }}
+              </a>
+            </td>
+            <td class="px-4 py-3 text-neutral-700">{{recruiter.username}}</td>
+            <td class="px-4 py-3">
+              <div class="flex gap-1">
+                <span class="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 text-xs font-medium rounded bg-neutral-100 text-neutral-600">{{ recruiter.get_total_jobposts|filter_jobposts:'Draft' }}</span>
+                <span class="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 text-xs font-medium rounded bg-yellow-100 text-yellow-800">{{ recruiter.get_total_jobposts|filter_jobposts:'Pending' }}</span>
+                <span class="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800">{{ recruiter.get_total_jobposts|filter_jobposts:'Published' }}</span>
+                <span class="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 text-xs font-medium rounded bg-green-100 text-green-800">{{ recruiter.get_total_jobposts|filter_jobposts:'Live' }}</span>
+                <span class="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 text-xs font-medium rounded bg-red-100 text-red-800">{{ recruiter.get_total_jobposts|filter_jobposts:'Disabled' }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-neutral-600 text-xs">{{ recruiter.date_joined|timezone:'Asia/Calcutta' }}</td>
+            <td class="px-4 py-3 text-center">
+              {% if recruiter.mobile_verified %}
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600">
+                <i class="fa fa-mobile"></i>
+              </span>
+              {% else %}
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-neutral-100 text-neutral-400">
+                <i class="fa fa-mobile"></i>
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex items-center justify-center">
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-1">
+                {% if recruiter.is_active %}
+                <a data-href="{% url 'dashboard:recruiter_status_change' recruiter.id %}?page={{ current_page }}"
+                   class="disable-recruiter inline-flex items-center justify-center w-8 h-8 rounded-lg text-green-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                   title="Disable">
+                  <i class="fa fa-check"></i>
+                </a>
+                {% else %}
+                <a data-href="{% url 'dashboard:recruiter_status_change' recruiter.id %}?page={{ current_page }}"
+                   class="enable-recruiter inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-500 hover:bg-green-50 hover:text-green-600 transition-colors"
+                   title="Enable">
+                  <i class="fa fa-times"></i>
+                </a>
+                {% endif %}
+
+                <a data-href="{% url 'dashboard:recruiter_delete' recruiter.id %}"
+                   class="delete-recruiter inline-flex items-center justify-center w-8 h-8 rounded-lg text-neutral-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                   title="Delete Recruiter">
+                  <i class="fa-solid fa-trash-can"></i>
+                </a>
+
+                {% if recruiter.get_active_jobposts_count >= 100 %}
+                  {% if recruiter.is_paid %}
+                  <a href="{% url 'dashboard:recruiter_paid_status_change' recruiter.id %}"
+                     class="paid-recruiter inline-flex items-center justify-center w-8 h-8 rounded-lg text-green-600 hover:bg-neutral-100 transition-colors"
+                     title="Paid">
+                    <i class="fa fa-check"></i>
+                  </a>
+                  {% else %}
+                  <a href="{% url 'dashboard:recruiter_paid_status_change' recruiter.id %}"
+                     class="unpaid-recruiter inline-flex items-center justify-center w-8 h-8 rounded-lg text-amber-500 hover:bg-neutral-100 transition-colors"
+                     title="UnPaid">
+                    <i class="fa fa-times"></i>
+                  </a>
+                  {% endif %}
+                {% endif %}
+
+                {% if recruiter.is_active %}
+                <a href="{{ site_url }}/recruiters/{{ recruiter.username }}/" target="_blank"
+                   class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+                   title="View Profile">
+                  <i class="fa fa-eye"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if last_page > 1 %}
+    <div class="px-4 py-4 border-t border-neutral-200">
+      {% get_page current_page last_page as pages %}
+      <nav class="flex items-center justify-center gap-1">
+        {% if current_page != 1 %}
+        <a href="#" class="{{previous_page}} page-nav inline-flex items-center justify-center w-9 h-9 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors">
+          <i class="fa fa-angle-double-left"></i>
+        </a>
+        <a href="#" class="{{prev_page}} page-nav inline-flex items-center justify-center w-9 h-9 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors">
+          <i class="fa fa-angle-left"></i>
+        </a>
+        <a href="#" class="1 page-nav inline-flex items-center justify-center px-3 h-9 rounded-lg text-sm text-neutral-600 hover:bg-neutral-100 transition-colors">first</a>
+        {% endif %}
+
+        {% for s in pages %}
+        <a href="#" class="{{s}} page-nav inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors {% if s == current_page %}bg-primary-500 text-white{% else %}text-neutral-600 hover:bg-neutral-100{% endif %}">
+          {{s}}
+        </a>
+        {% endfor %}
+
+        {% if current_page != last_page %}
+        <a href="#" class="{{ last_page }} page-nav inline-flex items-center justify-center px-3 h-9 rounded-lg text-sm text-neutral-600 hover:bg-neutral-100 transition-colors">last</a>
+        <a href="#" class="{{ aft_page }} page-nav inline-flex items-center justify-center w-9 h-9 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors">
+          <i class="fa fa-angle-right"></i>
+        </a>
+        <a href="#" class="{{ after_page }} page-nav inline-flex items-center justify-center w-9 h-9 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors">
+          <i class="fa fa-angle-double-right"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+    {% else %}
+    <!-- Empty State -->
+    <div class="px-4 py-16 text-center">
+      <div class="flex flex-col items-center">
+        <i class="fa fa-user-tie text-5xl text-neutral-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-neutral-700 mb-1">No Recruiters Found</h3>
+        <p class="text-neutral-500">Try adjusting your search filters</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock stage %}
+
+{% block script %}
+<script type="text/javascript">
+$('.delete-recruiter').click(function(e){
+  if(!confirm('Do you want to delete this Recruiter?')){
+    e.preventDefault();
+    e.stopPropagation();
+  } else {
+    $("#recruiterform").attr("action", $(this).data("href"));
+    $('#recruiterform').submit();
+  }
+});
+
+$('.disable-recruiter').click(function(e){
+  if(!confirm('Do you want to Disable this Recruiter Status?')){
+    e.preventDefault();
+    e.stopPropagation();
+  } else {
+    $("#recruiterform").attr("action", $(this).data("href"));
+    $('#recruiterform').submit();
+  }
+});
+
+$('.enable-recruiter').click(function(e){
+  if(!confirm('Do you want to Enable this Recruiter Status?')){
+    e.preventDefault();
+    e.stopPropagation();
+  } else {
+    $("#recruiterform").attr("action", $(this).data("href"));
+    $('#recruiterform').submit();
+  }
+});
+
+$('.alpha-filter').click(function(e){
+  e.preventDefault();
+  $("#recruiterform").attr("action", "/dashboard/recruiters/"+"{{status}}"+"/list/");
+  $('#page').val(1);
+  var filterClass = $(this).attr('class').split(' ')[0];
+  if (filterClass === 'alpha-filter') filterClass = '';
+  $('#alphabet_value').val(filterClass);
+  $('#recruiterform').submit();
+});
+
+$('.page-nav').click(function(e) {
+  e.preventDefault();
+  var pageClass = $(this).attr('class').split(' ')[0];
+  $('#page').val(pageClass);
+  $("#recruiterform").attr("action", "/dashboard/recruiters/"+"{{status}}"+"/list/");
+  $('#recruiterform').submit();
+});
+</script>
+{% endblock script %}

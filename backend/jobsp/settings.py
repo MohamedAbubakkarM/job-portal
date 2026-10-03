@@ -1,0 +1,600 @@
+import os
+
+from celery.schedules import crontab
+from corsheaders.defaults import default_headers, default_methods
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+
+def env_bool(name, default):
+    """Read a boolean from the environment.
+
+    os.getenv returns strings, so `os.getenv("DEBUG", True)` yields the string
+    "False" when DEBUG=False is set -- which is truthy. This parses the value
+    instead of relying on its truthiness.
+    """
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
+
+DEBUG = env_bool("DEBUG", True)
+TEMPLATE_DEBUG = DEBUG
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "peeljobs@micropyramid.com")
+
+
+PEEL_URL = os.getenv("PEEL_URL", "http://peeljobs.com/")
+
+# Recruiter Frontend URL for team invitation emails and the legacy
+# /recruiter/ redirects. The recruiter UI runs on 5174; 5173 is the job-seeker
+# site.
+RECRUITER_FRONTEND_URL = os.getenv("RECRUITER_FRONTEND_URL", "http://localhost:5174")
+
+# Job-seeker frontend URL, used to build the password-reset link in
+# api/v1/auth/views.py. That code read this via hasattr() with a hardcoded
+# localhost:5173 fallback, and the setting had never been defined — so every
+# reset email in production would have linked to localhost.
+SITE_FRONTEND_URL = os.getenv("SITE_FRONTEND_URL", "http://localhost:5173")
+
+# Bare hostname used to build absolute <loc> URLs in the sitemaps.
+#
+# django.contrib.sitemaps takes this from the Sites framework, and the `sites`
+# row was never configured off Django's default — so every <loc> in every
+# sitemap read `https://example.com/...`, all 27,000 of them. Nothing else in
+# the codebase touches Site.objects or get_current(), so the Sites row had no
+# other job; psite.sitemaps.PeelJobsSitemap now overrides `get_domain()` to
+# read this instead. Kept as a setting rather than a fixed Site row so it
+# cannot silently drift per environment.
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "peeljobs.com")
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+CELERY_IMPORTS = "dashboard.tasks"
+
+
+# Enable debug logging
+
+logging = "DEBUG"
+
+GIT_APP_ID = os.getenv("GITAPPID")
+GIT_APP_SECRET = os.getenv("GITAPPSECRET")
+
+ALLOWED_HOSTS = ["peeljobs.com", "test.peeljobs.com", "localhost", "127.0.0.1"]
+
+# tw app
+tw_oauth_token_secret = os.getenv("twoauthtokensecret")
+tw_oauth_token = os.getenv("twoauthtokensecret")
+
+TW_APP_KEY = os.getenv("TWAPPKEY")
+TW_APP_SECRET = os.getenv("TWAPPSECRET")
+OAUTH_TOKEN = os.getenv("OAUTHTOKEN")
+OAUTH_SECRET = os.getenv("OAUTHSECRET")
+
+PJ_TW_APP_KEY = os.getenv("PJTWAPPKEY")
+PJ_TW_APP_SECRET = os.getenv("PJTWAPPSECRET")
+
+# fb app
+FB_APP_ID = os.getenv("FACEBOOK_APP_ID")
+FB_SECRET = os.getenv("FACEBOOK_APP_SECRET")
+FB_PEELJOBS_PAGEID = os.getenv("FBPEELJOBSPAGEID")
+
+# google app
+GOOGLE_CLIENT_ID = GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_LOGIN_HOST = os.getenv("GOOGLE_LOGIN_HOST")
+
+# ln app
+LN_API_KEY = os.getenv("LNAPIKEY")
+LN_SECRET_KEY = os.getenv("LNSECRETKEY")
+LN_OAUTH_USER_TOKEN = os.getenv("LNOAUTHUSERTOKEN")
+LN_OAUTH_USER_SECRET = os.getenv("LNOAUTHUSERSECRET")
+LN_COMPANYID = os.getenv("LNCOMPANYID")
+
+# re-captcha
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
+RECAPTCHA_USE_SSL = True
+
+# Make this unique, and don"t share it with anybody.
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+ADMINS = (
+    # ("Your Name", "your_email@example.com"),
+)
+
+MANAGERS = ADMINS
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",  # Django 5.x uses psycopg 3.x by default
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
+        "OPTIONS": {
+            # Connection options for psycopg 3.x
+            "connect_timeout": 10,
+        },
+    }
+}
+
+
+TIME_ZONE = "Asia/Kolkata"
+
+LANGUAGE_CODE = "en-us"
+
+SITE_ID = 1
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = False
+
+
+# List of finder classes that know how to find static files in various locations.
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "compressor.finders.CompressorFinder",
+)
+
+HTML_MINIFY = env_bool("HTML_MINIFY", False)
+
+ROOT_URLCONF = "jobsp.urls"
+
+# Python dotted path to the WSGI application used by Django"s runserver.
+WSGI_APPLICATION = "jobsp.wsgi.application"
+
+INSTALLED_APPS = (
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",  # Django sitemap framework
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    "django.contrib.messages",
+    "sorl.thumbnail",
+    "compressor",
+    "storages",
+    "peeldb",
+    # 'django_simple_forum',
+    "dashboard",
+    # "simple_pagination",
+    "django_celery_beat",
+    "corsheaders",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt.token_blacklist",
+    "dj_rest_auth",
+    "django_ses",
+    "drf_spectacular",  # API documentation
+    "api",  # New API app for job seekers
+)
+
+# Ordering follows Django's documented recommendation. SecurityMiddleware,
+# CsrfViewMiddleware and XFrameOptionsMiddleware were all absent, which
+# `check --deploy` reported as security.W001/W002/W003. CorsMiddleware stays
+# near the top, as django-cors-headers requires, ahead of CommonMiddleware.
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # "hmin.middleware.MinMiddleware",
+    # "hmin.middleware.MarkMiddleware",
+    # "jobsp.middlewares.DetectMobileBrowser",
+    "jobsp.middlewares.LowerCased",
+]
+
+# DENY: no page in this project is embedded in a frame. Every <iframe> in the
+# templates embeds third-party content (Facebook page plugins) *into* our pages,
+# which X-Frame-Options does not affect.
+X_FRAME_OPTIONS = "DENY"
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+    "http://localhost:3000",  # SvelteKit default
+    "http://localhost:5173",  # Vite default
+    "http://localhost:5174",  # Recruiter UI
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://\w+\.peeljobs\.com$",
+]
+CORS_ALLOW_METHODS = list(default_methods)
+CORS_ALLOW_HEADERS = list(default_headers)
+CORS_ALLOW_CREDENTIALS = True
+
+
+AUTH_USER_MODEL = "peeldb.User"
+LOGIN_URL = "/"
+
+AUTHENTICATION_BACKENDS = (
+    "social.auth_backend.PasswordlessAuthBackend",
+    "django.contrib.auth.backends.ModelBackend",
+)
+
+# This setting was absent, and Django treats a missing AUTH_PASSWORD_VALIDATORS
+# as an empty list — so every validate_password() call in the API ran zero
+# checks and accepted "password123". Registration, password reset and change
+# password were all affected.
+#
+# Only new and changed passwords are validated; existing hashes are untouched.
+AUTH_PASSWORD_VALIDATORS = [
+    # Rejects a password that looks like the user's own email or name. Only
+    # runs when validate_password() is given the user, which is why the
+    # serializers pass one.
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "OPTIONS": {
+            "user_attributes": ("username", "first_name", "last_name", "email")
+        },
+    },
+    # Matches the min_length already declared on the password serializer
+    # fields, so the two cannot drift apart.
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    },
+    # The one that catches "password123" — Django ships a list of the 20,000
+    # most common passwords.
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR + "/templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                # "jobsp.context_processors.export_vars",
+                "peeldb.context_processors.get_pj_icons",
+                "peeldb.context_processors.frontend_urls",
+            ],
+        },
+    },
+]
+
+AM_ACCESS_KEY = AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
+AM_PASS_KEY = AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")
+AWS_SES_REGION_NAME = os.getenv("AWS_SES_REGION_NAME")
+AWS_SES_REGION_ENDPOINT = os.getenv("AWS_SES_REGION_ENDPOINT")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+
+
+COMPRESS_CSS_FILTERS = [
+    "compressor.filters.css_default.CssAbsoluteFilter",
+    "compressor.filters.cssmin.CSSMinFilter",
+]
+COMPRESS_JS_FILTERS = ["compressor.filters.jsmin.JSMinFilter"]
+COMPRESS_REBUILD_TIMEOUT = 5400
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_URL = "/static/"
+
+ADMIN_MEDIA_PREFIX = STATIC_URL + "admin/"
+COMPRESS_OUTPUT_DIR = "CACHE"
+COMPRESS_URL = STATIC_URL
+COMPRESS_ENABLED = True
+COMPRESS_PRECOMPILERS = (
+    ("text/less", "lessc {infile} {outfile}"),
+    ("text/x-sass", "sass {infile} {outfile}"),
+    ("text/x-scss", "sass {infile} {outfile}"),
+)
+
+COMPRESS_OFFLINE_CONTEXT = {
+    "STATIC_URL": "STATIC_URL",
+}
+
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
+
+
+# Search is Postgres full-text search, configured on the model rather than
+# here: JobPost.search_vector is a generated tsvector column with a GIN index,
+# queried by api/v1/jobs/filters.py. There is no search service to point at, no
+# index to rebuild and no credentials to hold, so this section is empty by
+# design.
+#
+# It previously held HAYSTACK_CONNECTIONS + a RealtimeSignalProcessor against
+# Elasticsearch 7. Nothing queried that index by the time it was removed, and
+# the signal processor meant no test could save a Skill, City, User or JobPost
+# without a live Elasticsearch — which is why jobsp/test_runner.py existed.
+# Both are gone; TEST_RUNNER is back to the Django default.
+
+CELERY_TIMEZONE = "Asia/Calcutta"
+
+CELERY_BEAT_SCHEDULE = {
+    # Executes every day evening at 5:00 PM GMT +5.30
+    "moving-published-jobs-to-live": {
+        "task": "dashboard.tasks.jobpost_published",
+        "schedule": crontab(minute="*", day_of_week="mon,tue,wed,thu,fri,sat"),
+    },
+    "sending-today-applied-users-info-to-recruiters": {
+        "task": "dashboard.tasks.recruiter_jobpost_applicants",
+        "schedule": crontab(
+            hour="16", minute="00", day_of_week="mon,tue,wed,thu,fri,sat"
+        ),
+    },
+    # "sending-profile_update-notifications-to-applicants": {
+    #     "task": "dashboard.tasks.applicants_notifications",
+    #     "schedule": crontab(
+    #         hour="16", minute="00", day_of_week="mon,tue,wed,thu,fri,sat"
+    #     ),
+    # },
+    "sending-daily-statistics-report-to-admins": {
+        "task": "dashboard.tasks.daily_report",
+        "schedule": crontab(
+            hour="08", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+        ),
+    },
+    "sending-weekly-jobs-notifications-to-applicants": {
+        "task": "dashboard.tasks.applicants_job_notifications",
+        "schedule": crontab(hour="09", minute="00", day_of_week="mon"),
+    },
+    # "all-users-profile-update-and-birthday-notifications": {
+    #     "task": "dashboard.tasks.alerting_applicants",
+    #     "schedule": crontab(
+    #         hour="10", minute="05", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+    #     ),
+    # },
+    # "alerting-all-inactive-users-and-applicants-resume-upload-notifications": {
+    #     "task": "dashboard.tasks.applicants_profile_update_notifications",
+    #     "schedule": crontab(
+    #         hour="09", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+    #     ),
+    # },
+    "sending-profile-update-notifications-two-hours-after-registering": {
+        "task": "dashboard.tasks.applicants_profile_update_notifications_two_hours",
+        "schedule": crontab(
+            hour="*/2", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+        ),
+    },
+    # "walkin-notifications-to-applicants": {
+    #     "task": "dashboard.tasks.applicants_walkin_job_notifications",
+    #     "schedule": crontab(hour="09", minute="00", day_of_week="thu"),
+    # },
+    # OLD SITEMAP GENERATION - Replaced with Django sitemap framework
+    # "daily-sitemap-generation": {
+    #     "task": "dashboard.tasks.sitemap_generation",
+    #     "schedule": crontab(
+    #         hour="00", minute="10", day_of_week="mon,tue,wed,thu,fri,sat"
+    #     ),
+    # },
+    "sending-today-live-jobs-to-users-based-on-profile": {
+        "task": "dashboard.tasks.job_alerts_to_users",
+        "schedule": crontab(
+            hour="17", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+        ),
+    },
+    "sending-today-live-jobs-to-alerts": {
+        "task": "dashboard.tasks.job_alerts_to_alerts",
+        "schedule": crontab(
+            hour="10", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+        ),
+    },
+    "sending-today-live-jobs-to-subscribers": {
+        "task": "dashboard.tasks.job_alerts_to_subscribers",
+        "schedule": crontab(
+            hour="18", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+        ),
+    },
+    # "recruiter-profile-update-notifications": {
+    #     "task": "dashboard.tasks.recruiter_profile_update_notifications",
+    #     "schedule": crontab(hour="09", minute="30", day_of_week="mon"),
+    # },
+    "check-expiring-jobs-and-send-notifications": {
+        "task": "dashboard.tasks.check_expiring_jobs",
+        "schedule": crontab(
+            hour="09", minute="00", day_of_week="mon,tue,wed,thu,fri,sat,sun"
+        ),
+    },
+}
+SUPPORT_EMAILS = [
+    "ashwin@micropyramid.com",
+]
+
+
+THUMBNAIL_COLORSPACE = None
+THUMBNAIL_PRESERVE_FORMAT = False
+THUMBNAIL_FORMAT = "PNG"
+THUMBNAIL_CACHE_TIMEOUT = 3600 * 24 * 365 * 10
+
+TIMEZONE = "Asia/Calcutta"
+LOGO = "http://localhost:8000/logo.png"
+
+
+THUMBNAIL_BACKEND = "jobsp.thumbnailname.SEOThumbnailBackend"
+THUMBNAIL_DEBUG = True
+
+THUMBNAIL_FORCE_OVERWRITE = True
+
+
+# AWS_ENABLED = os.getenv("AWSENABLED")
+# DISQUS_SHORTNAME = ""
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+#         "LOCATION": "127.0.0.1:11211",
+#         "TIMEOUT": 48 * 60 * 60,
+#         "OPTIONS": {"server_max_value_length": 1024 * 1024 * 2,},
+#     }
+# }
+
+# Alternative Redis cache configuration (if you prefer Redis over Memcached)
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",
+#         "TIMEOUT": 48 * 60 * 60,
+#     }
+# }
+
+FB_ACCESS_TOKEN = os.getenv("FBACCESSTOKEN")
+FB_PAGE_ACCESS_TOKEN = os.getenv("FBPAGEACCESSTOKEN")
+FB_GROUP_ACCESS_TOKEN = os.getenv("FBGROUPACCESSTOKEN")
+FB_ALL_GROUPS_TOKEN = os.getenv("FBALLGROUPSTOKEN")
+FB_DEL_ACCESS_TOKEN = os.getenv("FBDELACCESSTOKEN")
+REC_FB_ACCESS_TOKEN = os.getenv("RECFBACCESSTOKEN")
+
+URLS = [
+    "http://stage.peeljobs.com/",
+    "http://stage.peeljobs.com/fresher-jobs/",
+    "http://stage.peeljobs.com/jobs/",
+    "http://stage.peeljobs.com/companies/",
+]
+
+DAILY_REPORT_USERS = [
+    "kamal.seo@gmail.com",
+    "varun@micropyramid.com",
+    "ashwin@micropyramid.com",
+]
+# MIDDLEWARE_CLASSES = MIDDLEWARE
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT from Authorization header
+        "rest_framework.authentication.TokenAuthentication",  # Keep for backward compatibility
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# JWT Configuration
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+}
+
+REST_USE_JWT = True
+
+# drf-spectacular Configuration
+SPECTACULAR_SETTINGS = {
+    "TITLE": "PeelJobs API",
+    "DESCRIPTION": "REST API for PeelJobs Job Seeker Platform - Google OAuth Authentication and Job Management",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "CONTACT": {
+        "name": "PeelJobs Support",
+        "email": "support@peeljobs.com",
+    },
+    "LICENSE": {
+        "name": "Proprietary",
+    },
+    "SERVERS": [
+        {"url": "http://localhost:8000", "description": "Development server"},
+        {"url": "https://peeljobs.com", "description": "Production server"},
+    ],
+    "TAGS": [
+        {
+            "name": "Authentication",
+            "description": "Google OAuth 2.0 and JWT token management",
+        },
+        {"name": "User Profile", "description": "Job Seeker profile management"},
+        {"name": "Jobs", "description": "Job search and applications (coming soon)"},
+    ],
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": "/api/v[0-9]",
+    # Without these, three different "status" choice sets all wanted the name
+    # StatusEnum and drf-spectacular fell back to hash suffixes (Status370Enum,
+    # Status4a7Enum, Status75bEnum) that change whenever the choices change —
+    # which would churn every generated client. COMPANY_SIZE is listed because
+    # the same choice set is reached under two field names (Company.size and the
+    # recruiter registration serializer's company_size).
+    "ENUM_NAME_OVERRIDES": {
+        "JobPostStatusEnum": "peeldb.models.JobPost.POST_STATUS",
+        "ApplicationStatusEnum": "peeldb.models.POST_STATUS",
+        "LocationStatusEnum": "peeldb.models.STATUS_TYPES",
+        "CompanySizeEnum": "peeldb.models.COMPANY_SIZE",
+    },
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+        "filter": True,
+    },
+    "SECURITY": [
+        {
+            "Bearer": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    ],
+}
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+EMAIL_BACKEND = "django_ses.SESBackend"
+
+MP_CELERY_MONITOR_KEY = os.getenv("MP_CELERY_MONITOR_KEY")
+CELERY_MONITOR_URL = os.getenv("CELERY_MONITOR_URL")
+
+# Tailwind CSS Configuration
+TAILWIND_CSS_FILE = "css/tailwind-output.css"
+
+# NOTE: this module must NOT import settings_local.
+#
+# It used to end with `from .settings_local import *`. Because settings_local is
+# tracked in git it ships to production, and settings_server does
+# `from .settings import *` -- so every development override leaked into
+# production. Most seriously it replaced EMAIL_BACKEND (set to
+# django_ses.SESBackend ten lines above) with the console backend, meaning
+# production printed mail to stdout instead of sending it. It also forced
+# TEMPLATE_DEBUG = True and COMPRESS_ENABLED = False in production, and created a
+# circular import (settings_local starts with `from .settings import *`), which
+# is why "Local development settings loaded" printed twice.
+#
+# Settings modules are now selected only via DJANGO_SETTINGS_MODULE:
+#   jobsp.settings         -- shared base, production-safe on its own
+#   jobsp.settings_local   -- development (manage.py)
+#   jobsp.settings_server  -- production (manage_server.py, wsgi.py)

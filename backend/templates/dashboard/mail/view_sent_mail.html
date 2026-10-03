@@ -1,0 +1,117 @@
+{% extends "dashboard/base.html" %}
+{% load thumbnail %}
+{% load page_tags %}
+{% load tz %}
+{% block stage %}
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'dashboard:sent_mails' %}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors">
+        <i class="fa fa-arrow-left"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-neutral-900">Sent Email Details</h1>
+        <p class="text-sm text-neutral-500 mt-0.5">View sent email information</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Details Card -->
+  <div class="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+    <div class="p-6 space-y-6">
+      <!-- Title -->
+      <div class="bg-neutral-50 rounded-lg p-4">
+        <label class="block text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Title</label>
+        <p class="text-neutral-900 font-medium">{{ sent_mail.template.title }}</p>
+      </div>
+
+      <!-- Subject -->
+      <div class="bg-neutral-50 rounded-lg p-4">
+        <label class="block text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Subject</label>
+        <p class="text-neutral-900">{{ sent_mail.template.subject }}</p>
+      </div>
+
+      <!-- Message -->
+      <div class="bg-neutral-50 rounded-lg p-4">
+        <label class="block text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">Message</label>
+        <div class="prose prose-sm max-w-none text-neutral-700 bg-white rounded-lg p-4 border border-neutral-200">
+          {{ sent_mail.template.message|safe }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipients Table -->
+  <div class="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-neutral-200">
+      <h3 class="text-lg font-semibold text-neutral-800">
+        <i class="fa fa-users text-primary-500 mr-2"></i>Recipients
+      </h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full" id="sample_1">
+        <thead>
+          <tr class="bg-neutral-50 border-b border-neutral-200">
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider w-12">#</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Email</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">First Name</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Last Name</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Job Posts</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Joined On</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Social</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-100">
+          {% for recruiter in sent_mail.recruiter.all %}
+          <tr class="hover:bg-neutral-50 transition-colors {% if not recruiter.is_active %}bg-neutral-100{% endif %}">
+            <td class="px-4 py-3">
+              <span class="text-sm text-neutral-500">{{ forloop.counter }}</span>
+            </td>
+            <td class="px-4 py-3">
+              <a href="{% url 'dashboard:view_recruiter' recruiter.id %}" class="text-sm text-primary-600 hover:text-primary-700">
+                {{ recruiter.email }}
+              </a>
+            </td>
+            <td class="px-4 py-3">
+              <span class="text-sm text-neutral-900">{{ recruiter.first_name }}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="text-sm text-neutral-600">{{ recruiter.last_name }}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="text-sm text-neutral-600">
+                <span class="text-green-600">{{ recruiter.get_active_jobposts_count }}</span>/<span class="text-red-600">{{ recruiter.get_inactive_jobposts_count }}</span>
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="text-sm text-neutral-600">{{ recruiter.date_joined|timezone:'Asia/Calcutta' }}</span>
+            </td>
+            <td class="px-4 py-3">
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-neutral-500">
+              No recipients found
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+  $('#sample_1').DataTable({
+    "sPaginationType": "full_numbers",
+    "aaSorting": [],
+    "bSort": true,
+    "aLengthMenu": [[20, 50, 75, -1], [20, 50, 75, "All"]],
+    "pageLength": 20,
+  });
+</script>
+{% endblock %}

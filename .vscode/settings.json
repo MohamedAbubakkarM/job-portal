@@ -1,0 +1,9 @@
+{
+    "github.copilot.chat.codeGeneration.instructions": [
+        {
+            "file": "backend/pyproject.toml"
+        }
+    ],
+    "git.autorefresh": true,
+    "git.autofetch": "all"
+}
