@@ -175,7 +175,8 @@ jobs:
         run: |
           for url in "${{ vars.SITE_URL }}" "${{ vars.RECRUITER_URL }}"; do
             for i in $(seq 1 30); do
-              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$url/" || true)
+              # -L: the recruiter portal redirects logged-out visitors to /login/.
+              code=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 60 "$url/" || true)
               echo "$url -> $code"
               [ "$code" = "200" ] && continue 2
               sleep 10
